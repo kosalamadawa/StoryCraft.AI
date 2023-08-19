@@ -58,19 +58,19 @@ const Generation: React.FC = () => {
           className="min-h-[350px] max-h-[500px] flex flex-1 flex-col bg-gray-800 rounded-[24px] w-full
           p-[20px] shadow-md text-gray-200 border-[1px] space-y-[16px] border-gray-600 overflow-scroll no-scrollbar">
           {testCases && (
-            testCases.results.map((testCase) => (
-              <div className=''>
+            testCases.results.map((testCase, testCaseIndex) => (
+              <div className='' key={testCaseIndex}>
                 <h3 className='text-[18px] font-bold'>{testCase.test}</h3>
                 <h4 className='text-[16px] font-medium'>Expects:</h4>
                 <ul className='ml-[20px]'>
-                  {testCase.expects.map(expect => (
-                    <li className='text-gray-400'>- {expect}</li>
+                  {testCase.expects.map((expect, expectIndex) => (
+                    <li className='text-gray-400' key={expectIndex}>- {expect}</li>
                   ))}
                 </ul>
                 <h4 className='text-[16px] font-medium'>Steps:</h4>
                 <ul className='ml-[20px]'>
-                  {testCase.steps.map(step => (
-                    <li className='text-gray-400'>- {step}</li>
+                  {testCase.steps.map((step, stepIndex) => (
+                    <li className='text-gray-400' key={stepIndex}>- {step}</li>
                   ))}
                 </ul>
                 <div className='w-full h-[1px] bg-gray-500 mt-[8px]' />
