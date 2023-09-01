@@ -1,27 +1,36 @@
 'use client'
 
-import { getPrediction } from '@/service/api';
+import { useState } from 'react';
+import { getCSV, getPrediction } from '@/service/api';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import BeatLoader from "react-spinners/BeatLoader";
-import { useState } from 'react';
+import { CSVLink } from "react-csv";
 
 const Generation: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userStoryInput, setUserStoryInput] = useState<string>('');
   const [testCases, setTestCases] = useState<APIResponse>();
+  const [csv, setCsv] = useState<string>();
 
   const onGeneratePress = async (event: any) => {
     event.preventDefault();
     if (userStoryInput !== '') {
       try {
         setIsLoading(true);
-        const response = await getPrediction(userStoryInput);
-        setTestCases(response);
+        const promisesResponse = await Promise.all([getPrediction(userStoryInput), getCSV(userStoryInput)]);
+        setTestCases(promisesResponse[0]);
+        setCsv(promisesResponse[1]);
         setIsLoading(false);
       } catch (error) {
         console.error(error);
       }
     };
+  };
+
+  const onClearPress = () => {
+    setUserStoryInput('');
+    setTestCases(undefined);
+    setCsv(undefined);
   };
 
   return (
@@ -32,26 +41,38 @@ const Generation: React.FC = () => {
             className="bg-gray-800 h-full w-full ring-0 outline-0 p-4 rounded-[24px] text-gray-200"
             placeholder="Write the acceptance criteria"
             onChange={(event) => setUserStoryInput(event.target.value)}
+            value={userStoryInput}
           />
         </div>
-        <button
-          className="w-[197px] h-[40px] flex flex-row justify-center items-center space-x-3 bg-[#3b54d0] text-white shadow-md rounded-[16px] mt-[28px] p-2"
-          onClick={onGeneratePress}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <BeatLoader
-              color={'white'}
-              loading={isLoading}
-              size={12}
-            />
-          ) : (
-            <>
-              <p>Generate</p>
-              <ArrowPathIcon className='h-[20px] w-[20px]' />
-            </>
+        <div className='flex flex-row space-x-[16px]'>
+          <button
+            className="w-[197px] h-[40px] flex flex-row justify-center items-center space-x-3 bg-[#3b54d0] text-white shadow-md rounded-[16px] mt-[28px] p-2"
+            onClick={onGeneratePress}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <BeatLoader
+                color={'white'}
+                loading={isLoading}
+                size={12}
+              />
+            ) : (
+              <>
+                <p>Generate</p>
+                <ArrowPathIcon className='h-[20px] w-[20px]' />
+              </>
+            )}
+          </button>
+          {userStoryInput !== '' && (
+            <button
+              className="h-[40px] flex flex-row justify-center items-center space-x-3 bg-[#3b54d0] text-white shadow-md rounded-[16px] mt-[28px] p-2"
+              onClick={onClearPress}
+              disabled={isLoading}
+            >
+              Clear
+            </button>
           )}
-        </button>
+        </div>
       </div>
       <div className="flex flex-1 flex-col items-center">
         <div
@@ -78,12 +99,20 @@ const Generation: React.FC = () => {
             ))
           )}
         </div>
-        <button
-          className="w-[197px] h-[40px] flex flex-row justify-center items-center space-x-3 bg-[#3b54d0] text-white shadow-md rounded-[16px] mt-[28px] p-2"
-        >
-          <p>Save to Excel</p>
-          <img src="/csv.svg"/>
-        </button>
+        {csv && (
+          <CSVLink
+            className="w-[197px] h-[40px] flex flex-row justify-center items-center space-x-3 bg-[#3b54d0] text-white shadow-md rounded-[16px] mt-[28px] p-2"
+            data={csv}
+            target='_self'
+            filename='test-cases.csv'
+          >
+            <>
+              <p>Save to Excel</p>
+              <img src="/csv.svg" alt='csv'/>
+            </>
+          </CSVLink>
+        )}
+        {!csv && <div className="w-[197px] h-[40px] mt-[28px] p-2" />}
       </div>
     </div>
   );
