@@ -1,16 +1,15 @@
 'use client'
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getCSV, getPrediction } from '@/service/api';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import BeatLoader from "react-spinners/BeatLoader";
-import { CSVLink } from "react-csv";
 
 const Generation: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userStoryInput, setUserStoryInput] = useState<string>('');
   const [testCases, setTestCases] = useState<APIResponse>();
-  const [csv, setCsv] = useState<string>();
+  const [csv, setCsv] = useState<Blob>();
 
   const onGeneratePress = async (event: any) => {
     event.preventDefault();
@@ -26,6 +25,21 @@ const Generation: React.FC = () => {
       }
     };
   };
+
+  useEffect(() => {
+    const createExcelLink = (blob: Blob) => {
+      const element = document.getElementById('excel-file') as HTMLAnchorElement;
+      const url = window.URL.createObjectURL(blob);
+      if (element) {
+        element.href = url;
+        element.download = 'test_cases.xlsx';
+      }
+    };
+
+    if (csv) {
+      createExcelLink(csv);
+    }
+  }, [csv]);
 
   const onClearPress = () => {
     setUserStoryInput('');
@@ -100,17 +114,14 @@ const Generation: React.FC = () => {
           )}
         </div>
         {csv && (
-          <CSVLink
+          <a
             className="w-[197px] h-[40px] flex flex-row justify-center items-center space-x-3 bg-[#3b54d0] text-white shadow-md rounded-[16px] mt-[28px] p-2"
-            data={csv}
-            target='_self'
-            filename='test-cases.csv'
+            target="_self"
+            id='excel-file'
           >
-            <>
-              <p>Save to Excel</p>
-              <img src="/csv.svg" alt='csv'/>
-            </>
-          </CSVLink>
+            <p>Save to Excel</p>
+            <img src="/csv.svg" alt='csv'/>
+          </a>
         )}
         {!csv && <div className="w-[197px] h-[40px] mt-[28px] p-2" />}
       </div>
